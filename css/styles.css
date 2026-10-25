@@ -22,6 +22,7 @@
   --white: #ffffff;
   --font-display: "Bungee", "Arial Black", Impact, sans-serif;
   --font-body: "Fredoka", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  --font-hand: "Patrick Hand", "Chalkboard SE", "Comic Sans MS", cursive;
   --shadow: 0 12px 32px rgb(0 0 0 / 0.38);
 }
 
@@ -1289,24 +1290,127 @@ dialog.modal-sheet {
   font-family: ui-monospace, Menlo, Consolas, monospace !important;
 }
 
-/* History */
-.history {
+/* ---------- Memories ---------- */
+
+.stars {
+  color: var(--gold-deep);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.seat-avatar.small {
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+}
+
+/* "How was it?" ticket on the main screen */
+.memory-prompt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px dashed var(--gold-deep);
+  border-radius: 12px;
+  background: var(--ivory);
+  color: var(--ink);
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.3;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px var(--ivory), 0 6px 16px rgb(0 0 0 / 0.3);
+  animation: deal 0.3s ease-out;
+}
+
+.memory-prompt-icon {
+  font-size: 26px;
+}
+
+.memory-prompt-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.memory-prompt-text strong {
+  display: block;
+  color: var(--red-deep);
+}
+
+.memory-prompt-more {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--ivory-shade);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* "Done 2 times before" on the result card */
+.last-time {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.last-photo {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border: 4px solid var(--white);
+  border-bottom-width: 10px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
+  transform: rotate(-4deg);
+}
+
+/* Scrapbook pages */
+.scrapbook-totals {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.memories {
   display: grid;
-  gap: 8px;
+  gap: 14px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.history-row {
+.memory {
   display: grid;
-  gap: 2px;
-  padding: 10px 12px;
-  border-radius: 12px;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
   background: var(--white);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
 }
 
-.history-date {
+.memory.is-pending {
+  background: transparent;
+  box-shadow: none;
+  border: 2px dashed var(--ivory-shade);
+}
+
+.memory .link-btn {
+  justify-self: end;
+  padding: 0 4px;
+}
+
+.memory-head {
+  display: grid;
+  gap: 2px;
+}
+
+.memory-date {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1314,13 +1418,353 @@ dialog.modal-sheet {
   color: var(--red-deep);
 }
 
-.history-what {
+.memory-title {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.memory-average {
+  font-weight: 700;
+}
+
+.polaroids {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 0 4px;
+}
+
+.polaroid {
+  width: min(42%, 150px);
+  padding: 6px 6px 20px;
+  border: 0;
+  background: var(--white);
+  box-shadow: 0 3px 10px rgb(0 0 0 / 0.22);
+  transform: rotate(var(--tilt));
+  cursor: zoom-in;
+}
+
+.polaroid img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: var(--ivory-shade);
+}
+
+img.is-missing {
+  background: var(--ivory-shade) center / 40% no-repeat;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23b7a67f' d='M9 4 7.2 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.2L15 4H9zm3 5a4 4 0 1 1 0 8 4 4 0 0 1 0-8z'/%3E%3C/svg%3E");
+}
+
+.quotes {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.quote-body {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.quote-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.quote-text {
+  font-family: var(--font-hand);
+  font-size: 19px;
+  line-height: 1.2;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* Hall of Fame */
+.podium {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: end;
+  gap: 8px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.podium-spot {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+  padding: 12px 6px;
+  border-radius: 14px 14px 4px 4px;
+  background: var(--white);
+  text-align: center;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+
+.podium-spot.place-1 {
+  order: 2;
+  min-height: 190px;
+  background: linear-gradient(170deg, #fff6d6, #f3d98d);
+  box-shadow: 0 0 0 2px var(--gold);
+}
+
+.podium-spot.place-2 {
+  order: 1;
+  min-height: 165px;
+}
+
+.podium-spot.place-3 {
+  order: 3;
+  min-height: 150px;
+}
+
+.medal {
+  font-size: 26px;
+}
+
+.podium-emoji {
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.podium-name {
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.podium-spot .stars {
+  font-size: 13px;
+}
+
+.podium-count {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.fame-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fame-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--white);
+}
+
+.fame-rank {
+  width: 1.5em;
+  font-weight: 700;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.fame-name {
+  flex: 1;
+  min-width: 0;
   font-weight: 600;
 }
 
-.history-who {
-  font-size: 13px;
+/* Memory form */
+.photo-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.photo-thumb,
+.photo-add {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  border-radius: 10px;
+}
+
+.photo-thumb img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.photo-thumb.is-busy {
+  display: grid;
+  place-items: center;
+  background: var(--ivory-shade);
   color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+  animation: pulse-bg 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-bg {
+  to {
+    background: var(--white);
+  }
+}
+
+.photo-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--white);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.photo-add {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  border: 2px dashed var(--gold-deep);
+  background: var(--white);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.photo-add span {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.photo-add input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.photo-add:focus-within {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.raters {
+  display: grid;
+  gap: 10px;
+}
+
+.rater {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--white);
+  box-shadow: inset 4px 0 0 var(--seat);
+}
+
+.rater-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.rater-name {
+  flex: 1;
+  min-width: 4em;
+  font-weight: 700;
+}
+
+.star-row {
+  display: flex;
+}
+
+.star {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #d8cba9;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.12s, color 0.12s;
+}
+
+.star.is-on {
+  color: var(--gold);
+  text-shadow: 0 1px 0 var(--gold-deep);
+}
+
+.star:active {
+  transform: scale(1.25);
+}
+
+.form input.best-bit {
+  padding: 8px 12px;
+  font-family: var(--font-hand);
+  font-size: 19px;
+}
+
+.memory-form > .link-btn {
+  display: block;
+  margin: 10px auto 0;
+}
+
+/* Full-screen photo */
+dialog.modal-photo {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+}
+
+.photo-viewer {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  cursor: zoom-out;
+}
+
+.photo-viewer img {
+  max-width: 100%;
+  max-height: 100%;
+  border: 8px solid var(--white);
+  border-bottom-width: 32px;
+  box-shadow: var(--shadow);
+}
+
+.photo-viewer .icon-btn {
+  position: absolute;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  right: max(12px, env(safe-area-inset-right, 0px));
 }
 
 /* ---------- Overlays ---------- */

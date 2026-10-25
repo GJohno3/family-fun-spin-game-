@@ -14,7 +14,7 @@ It's a web app: no app store and no account. It runs in the phone's browser and 
    - 💷 Budget: cycles through any, ££ max, £ max and free only.
    - 🏠 Stay home: only things you can do at home (after school only).
 3. **Spin.** Whoever's turn it is flicks the wheel with a finger (a harder flick means a longer spin) or presses **Spin**. Their avatar sits in the middle of the wheel.
-4. **Let's do it!** saves it to the history (📜) and passes the turn to the next player.
+4. **Let's do it!** saves it to the scrapbook (📖) and passes the turn to the next player.
 
 ### Vetoes
 
@@ -34,6 +34,23 @@ Kid's Choice and Spin Twice can be switched off in Settings. Jackpot and Mystery
 ### Kids' ideas
 
 Tap 💡 to suggest an idea. It waits for a grown-up to approve it, then goes on the wheel with the kid's avatar in the pocket. When the ball lands on it, they get a "Your idea!" celebration.
+
+### Memories and the scrapbook 📖
+
+About an hour after a "Let's do it!", a banner on the main screen asks how it went. Tap it to:
+
+- add up to 6 photos (pick from the camera roll or take new ones)
+- let each player give it 1 to 5 stars
+- write each player's "best bit" ("Got 3 strikes in a row")
+
+Didn't end up doing it? Tap **We didn't end up doing it** to take it off the list.
+
+The 📖 button opens the scrapbook:
+
+- **Memories:** every activity, newest first, with polaroid photos, everyone's stars and their best bits. Tap a photo to see it full-size, or **Edit** to change a memory.
+- **Hall of Fame:** the top three activities on a podium, the rest of the top ten, and each player's favourite.
+
+When the wheel lands on something you've done before, the result card shows how often you've done it, the stars it got and the last photo. A Mystery Envelope stays secret in the scrapbook until its memory is added.
 
 ### Grown-up controls 🔒
 
@@ -66,7 +83,9 @@ It opens full-screen and works offline once it has loaded.
 
 ### Your data
 
-Players, activities, ideas and history are saved in the browser on that device. They don't sync between phones. Use **Grown-ups → Settings → Copy backup** now and then and keep the text somewhere safe. Paste it into **Restore from backup** to bring everything back or to move to a new phone.
+Players, activities, ideas and memories are saved in the browser on that device. They don't sync between phones. Use **Grown-ups → Settings → Copy backup** now and then and keep the text somewhere safe. Paste it into **Restore from backup** to bring everything back or to move to a new phone.
+
+Scrapbook photos are stored on the phone separately, as small copies (about 200KB each). They aren't part of the copy-and-paste backup, so after moving phones the memories come back with a placeholder where each photo was. Photos picked from the camera roll are still in the camera roll, of course.
 
 ## Running it on a computer
 
@@ -78,7 +97,7 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000>.
 
-Tests cover the game logic (filters, pockets, odds, vetoes and turns). They need Node 18 or newer and nothing else:
+Tests cover the game logic (filters, pockets, odds, vetoes and turns), saved-data upgrades, and the memory rules (stars, the Hall of Fame and favourites). They need Node 18 or newer and nothing else:
 
 ```sh
 npm test
@@ -92,9 +111,11 @@ Plain HTML, CSS and JavaScript with no build step and no dependencies.
 | --- | --- |
 | `index.html` | The page |
 | `css/styles.css` | The roulette-table look |
-| `js/app.js` | Screens, turns, results, vetoes, ideas and grown-up controls |
+| `js/app.js` | Screens, turns, results, vetoes, ideas, the scrapbook and grown-up controls |
 | `js/wheel.js` | Draws the wheel, runs the ball physics and handles flick-to-spin |
 | `js/logic.js` | The rules: filters, pockets, picking and vetoes (no page code, so it's testable) |
+| `js/memories.js` | Stars, the "how was it?" list, the Hall of Fame and favourites (also testable) |
+| `js/photos.js` | Shrinks photos and keeps them in the browser's IndexedDB |
 | `js/data.js` | The starter activities |
 | `js/state.js` | Saving, loading and backups |
 | `js/sound.js` | Sound effects, made with Web Audio (no audio files) |
@@ -103,10 +124,10 @@ Plain HTML, CSS and JavaScript with no build step and no dependencies.
 
 The result is picked fairly (weighted by pocket size, using the browser's secure random numbers) before the ball is thrown. The animation then steers the ball into that pocket.
 
-## Ideas for version 2
+## Ideas for later
 
-- **Memory log:** a photo and star ratings from each kid after every activity, building into a family scrapbook and Hall of Fame.
-- **Fairer odds:** activities you haven't done for ages get bigger pockets, and the ratings feed in too.
+- **Fairer odds:** activities you haven't done for ages get bigger pockets, and the star ratings feed in too.
+- **Photo backup:** save a backup file that includes the scrapbook photos.
 - **Family goals:** team challenges like "5 outdoor activities this month", with points to unlock wheel themes and sounds.
 - **Sync** between phones.
 - **Shake to spin.**

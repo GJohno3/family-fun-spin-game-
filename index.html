@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="Fun Wheel">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap">
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -26,12 +26,14 @@
       <span class="brand-tag">Spin it. Do it.</span>
     </h1>
     <nav class="top-actions" aria-label="Menu">
-      <button id="btn-history" class="icon-btn" type="button" aria-label="What we've done">📜</button>
+      <button id="btn-scrapbook" class="icon-btn" type="button" aria-label="Scrapbook">📖</button>
       <button id="btn-idea" class="icon-btn" type="button" aria-label="Add an idea">💡</button>
       <button id="btn-sound" class="icon-btn" type="button" aria-label="Sound">🔊</button>
       <button id="btn-parent" class="icon-btn" type="button" aria-label="Grown-ups">🔒<span id="idea-count" class="count" hidden></span></button>
     </nav>
   </header>
+
+  <button id="memory-prompt" class="memory-prompt" type="button" hidden></button>
 
   <section class="table" aria-label="What kind of fun?">
     <div class="bet-boxes" role="tablist">

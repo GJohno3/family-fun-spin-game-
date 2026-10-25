@@ -1,5 +1,5 @@
 // Wires the page together: filters, players and turns, spinning, results,
-// vetoes, the kids' ideas and the grown-up controls.
+// vetoes, the kids' ideas, the scrapbook and the grown-up controls.
 
 import {
   BUDGETS,
@@ -19,9 +19,23 @@ import {
   vetoesLeft,
 } from './logic.js';
 import { AVATARS, IDEA_EMOJIS, PLAYER_COLOURS, defaultState, exportState, importState, loadState, newPlayer, saveState, uid } from './state.js';
+import {
+  activityStats,
+  averageRating,
+  formatRating,
+  hallOfFame,
+  pendingMemories,
+  playerFavourite,
+  scrapbookTotals,
+  starText,
+  timesText,
+} from './memories.js';
+import { addPhoto, deleteAllPhotos, deletePhotos, photoUrl } from './photos.js';
 import { RouletteWheel } from './wheel.js';
 import * as sound from './sound.js';
 import { confetti } from './confetti.js';
+
+const MAX_PHOTOS = 6;
 
 let state = loadState();
 const ui = { spinning: false, combo: null, pockets: [], pocketsKey: null, warnedStorage: false };
@@ -38,6 +52,12 @@ const currentPlayer = () => state.players[state.turn] ?? state.players[0];
 const playerById = (id) => state.players.find((p) => p.id === id);
 const activityById = (id) => state.activities.find((a) => a.id === id);
 const categoryById = (id) => CATEGORIES.find((c) => c.id === id);
+const formatDate = (at) => new Date(at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+
+// What a history entry was, keeping a Mystery Envelope secret until its memory is added.
+function entryTitle(entry, { reveal = false } = {}) {
+  return entry.items.map((i) => (i.secret && !reveal ? '✉️ Mystery plan' : `${esc(i.emoji)} ${esc(i.name)}`)).join(' + ');
+}
 
 function save() {
   if (!saveState(state) && !ui.warnedStorage) {
@@ -62,6 +82,7 @@ const wheel = new RouletteWheel($('#wheel'), {
 // ---------- Main screen ----------
 
 function render() {
+  renderMemoryPrompt();
   renderTable();
   renderTurn();
   refreshWheel();
@@ -71,6 +92,18 @@ function render() {
   const count = $('#idea-count');
   count.hidden = !state.ideas.length;
   count.textContent = state.ideas.length;
+}
+
+// "How was it?" banner for the latest activity without a memory.
+function renderMemoryPrompt() {
+  const prompt = $('#memory-prompt');
+  const pending = pendingMemories(state.history);
+  prompt.hidden = !pending.length;
+  if (!pending.length) return;
+  prompt.dataset.id = pending[0].id;
+  const more = pending.length > 1 ? `<span class="memory-prompt-more">+${pending.length - 1} more</span>` : '';
+  prompt.innerHTML = `<span class="memory-prompt-icon" aria-hidden="true">📸</span>
+    <span class="memory-prompt-text">How was ${entryTitle(pending[0])}? <strong>Add photos and stars</strong></span>${more}`;
 }
 
 function renderTable() {
@@ -256,6 +289,11 @@ function showResult({ items, special = null }) {
   const ideaBanner = ownIdea
     ? `<p class="idea-banner" style="--seat:${esc(ownIdea.colour)}">💡 Your idea, ${esc(ownIdea.name)}!</p>`
     : owners.map((p) => `<p class="idea-banner" style="--seat:${esc(p.colour)}">💡 ${esc(p.name)}'s idea!</p>`).join('');
+  const before = !secret && items.length === 1 ? activityStats(state.history).get(items[0].id) : null;
+  const lastTime = before
+    ? `<p class="last-time">${before.lastPhoto ? `<img class="last-photo" data-photo="${esc(before.lastPhoto)}" alt="">` : ''}
+        <span>Done ${timesText(before.times)} before${before.average !== null ? ` · <span class="stars" aria-label="${formatRating(before.average)} stars">${starText(before.average)}</span>` : ''}</span></p>`
+    : '';
 
   const m = openModal(
     `<div class="card result-card${special ? ` is-${special}` : ''}">
@@ -264,6 +302,7 @@ function showResult({ items, special = null }) {
       <h2 class="result-title">${title}</h2>
       ${ideaBanner}
       ${details}
+      ${lastTime}
       <div class="card-actions">
         <button class="btn btn-go" type="button" data-act="accept">✅ Let's do it!</button>
         <button class="btn btn-veto" type="button" data-act="veto" ${anyVetoes ? '' : 'disabled'}>🛑 ${anyVetoes ? 'Veto' : 'No vetoes left'}</button>
@@ -275,6 +314,7 @@ function showResult({ items, special = null }) {
     </div>`,
     { dismissible: false },
   );
+  hydratePhotos(m.el);
 
   const big = special === 'jackpot' || owners.length > 0;
   sound.fanfare(big);
@@ -317,7 +357,7 @@ function accept(items, special, modal) {
   confetti();
   sound.fanfare(true);
   const next = currentPlayer();
-  toast(`Have fun! Next spin: ${next.emoji} ${next.name}`);
+  toast(`Have fun! Add photos and stars afterwards. Next spin: ${next.emoji} ${next.name}`);
 }
 
 function respin(message) {
@@ -470,27 +510,303 @@ function showIdeaForm() {
   });
 }
 
-function showHistory() {
-  const rows = state.history
-    .map((h) => {
-      const p = playerById(h.playerId);
-      const date = new Date(h.at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-      const what = h.items.map((i) => (i.secret ? '✉️ Mystery plan' : `${esc(i.emoji)} ${esc(i.name)}`)).join(' + ');
-      const special = h.special && SPECIALS[h.special] ? `<span class="tag small">${SPECIALS[h.special].emoji} ${SPECIALS[h.special].title}</span>` : '';
-      return `<li class="history-row">
-        <span class="history-date">${date}</span>
-        <span class="history-what">${what} ${special}</span>
-        <span class="history-who">${p ? `${esc(p.emoji)} ${esc(p.name)} spun` : ''}</span>
+// ---------- Scrapbook ----------
+
+function showScrapbook() {
+  const m = openModal(
+    `<div class="sheet">
+      <header class="sheet-head">
+        <h2>Our scrapbook</h2>
+        <button class="icon-btn on-ivory" type="button" data-act="close" aria-label="Close">✕</button>
+      </header>
+      <nav class="tabs" role="tablist">
+        <button class="tab" type="button" role="tab" data-act="tab" data-tab="memories">📖 Memories</button>
+        <button class="tab" type="button" role="tab" data-act="tab" data-tab="fame">🏆 Hall of Fame</button>
+      </nav>
+      <div class="sheet-body"></div>
+    </div>`,
+    { className: 'modal-sheet' },
+  );
+  const body = $('.sheet-body', m.el);
+  let tab = 'memories';
+  const show = (next = tab, keepScroll = false) => {
+    tab = next;
+    const scroll = body.scrollTop;
+    $$('.tab', m.el).forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+    body.innerHTML = tab === 'fame' ? fameView() : memoriesView();
+    body.scrollTop = keepScroll ? scroll : 0;
+    hydratePhotos(body);
+  };
+  m.on('close', () => m.close());
+  m.on('tab', (btn) => show(btn.dataset.tab));
+  m.on('memory', (btn) => showMemoryForm(btn.dataset.id, { onSave: () => show(tab, true) }));
+  m.on('photo', (btn) => showPhoto(btn.dataset.photo));
+  show();
+}
+
+function memoriesView() {
+  const entries = state.history.filter((h) => !h.skipped);
+  if (!entries.length) {
+    return `<p class="muted">Nothing here yet. Spin the wheel and say "Let's do it!". Afterwards, add photos and stars, and your days out and evenings collect here.</p>`;
+  }
+  const totals = scrapbookTotals(state.history);
+  return `<p class="scrapbook-totals">${plural(totals.memories, 'memory', 'memories')} · ${plural(totals.photos, 'photo')}</p>
+    <ol class="memories">${entries.map(memoryCard).join('')}</ol>`;
+}
+
+const TILTS = [-3, 2.5, -1.5, 3, -2.5, 1.5];
+
+function memoryCard(h) {
+  const spinner = playerById(h.playerId);
+  const memory = h.memory;
+  const head = `<div class="memory-head">
+      <span class="memory-date">${formatDate(h.at)}${spinner ? ` · ${esc(spinner.emoji)} ${esc(spinner.name)} spun` : ''}</span>
+      <h3 class="memory-title">${entryTitle(h, { reveal: Boolean(memory) })}</h3>`;
+  if (!memory) {
+    return `<li class="memory is-pending">${head}</div>
+      <button class="btn btn-go small" type="button" data-act="memory" data-id="${esc(h.id)}">📸 Add photos and stars</button>
+    </li>`;
+  }
+  const average = averageRating(memory);
+  const photos = (memory.photos ?? [])
+    .map(
+      (id, i) => `<button class="polaroid" type="button" data-act="photo" data-photo="${esc(id)}" style="--tilt:${TILTS[i % TILTS.length]}deg" aria-label="Open photo">
+        <img data-photo="${esc(id)}" alt="">
+      </button>`,
+    )
+    .join('');
+  const quotes = state.players
+    .map((p) => {
+      const rating = memory.ratings?.[p.id];
+      const note = memory.notes?.[p.id];
+      if (!rating && !note) return '';
+      return `<li class="quote" style="--seat:${esc(p.colour)}">
+        <span class="seat-avatar small" aria-hidden="true">${esc(p.emoji)}</span>
+        <span class="quote-body">
+          <span class="quote-name">${esc(p.name)}${rating ? ` <span class="stars" aria-label="${rating} stars">${starText(rating)}</span>` : ''}</span>
+          ${note ? `<span class="quote-text">“${esc(note)}”</span>` : ''}
+        </span>
       </li>`;
     })
     .join('');
-  const m = openModal(`<div class="card">
-    <p class="eyebrow">📜 What we've done</p>
-    <h2>Our spins</h2>
-    ${rows ? `<ol class="history">${rows}</ol>` : `<p class="muted">Nothing yet. Every time you say "Let's do it!" to a spin, it's saved here.</p>`}
-    <div class="card-actions single"><button class="btn btn-quiet" type="button" data-act="close">Close</button></div>
-  </div>`);
+  return `<li class="memory">
+    ${photos ? `<div class="polaroids">${photos}</div>` : ''}
+    ${head}
+      ${average !== null ? `<span class="memory-average"><span class="stars" aria-label="${formatRating(average)} stars">${starText(average)}</span> ${formatRating(average)}</span>` : ''}
+    </div>
+    ${quotes ? `<ul class="quotes">${quotes}</ul>` : ''}
+    <button class="link-btn" type="button" data-act="memory" data-id="${esc(h.id)}">Edit</button>
+  </li>`;
+}
+
+function fameView() {
+  const ranked = hallOfFame(state.history);
+  if (!ranked.length) {
+    return `<p class="muted">The Hall of Fame fills up as you give activities stars. Add a memory after your next spin!</p>`;
+  }
+  const medals = ['🥇', '🥈', '🥉'];
+  const podium = ranked
+    .slice(0, 3)
+    .map(
+      (s, i) => `<li class="podium-spot place-${i + 1}">
+        <span class="medal" aria-hidden="true">${medals[i]}</span>
+        <span class="podium-emoji" aria-hidden="true">${esc(s.emoji)}</span>
+        <span class="podium-name">${esc(s.name)}</span>
+        <span class="stars" aria-label="${formatRating(s.average)} stars">${starText(s.average)}</span>
+        <span class="podium-count">${formatRating(s.average)} · ${timesText(s.times)}</span>
+      </li>`,
+    )
+    .join('');
+  const rest = ranked
+    .slice(3, 10)
+    .map(
+      (s, i) => `<li class="fame-row">
+        <span class="fame-rank">${i + 4}</span>
+        <span class="act-emoji" aria-hidden="true">${esc(s.emoji)}</span>
+        <span class="fame-name">${esc(s.name)}</span>
+        <span class="stars" aria-label="${formatRating(s.average)} stars">${starText(s.average)}</span>
+      </li>`,
+    )
+    .join('');
+  const favourites = state.players
+    .map((p) => {
+      const fav = playerFavourite(state.history, p.id);
+      if (!fav) return '';
+      return `<li class="quote" style="--seat:${esc(p.colour)}">
+        <span class="seat-avatar small" aria-hidden="true">${esc(p.emoji)}</span>
+        <span class="quote-body">
+          <span class="quote-name">${esc(p.name)}'s favourite</span>
+          <span>${esc(fav.emoji)} ${esc(fav.name)} <span class="stars" aria-label="${formatRating(fav.average)} stars">${starText(fav.average)}</span></span>
+        </span>
+      </li>`;
+    })
+    .join('');
+  return `<ol class="podium">${podium}</ol>
+    ${rest ? `<ol class="fame-list">${rest}</ol>` : ''}
+    ${favourites ? `<h3 class="list-head">Favourites</h3><ul class="quotes">${favourites}</ul>` : ''}`;
+}
+
+function showMemoryForm(entryId, { onSave } = {}) {
+  const entry = state.history.find((h) => h.id === entryId);
+  if (!entry) return;
+  const existing = entry.memory;
+  const spinner = playerById(entry.playerId);
+  const draft = { ratings: { ...existing?.ratings }, photos: [...(existing?.photos ?? [])] };
+  const added = []; // new photos, deleted again if the form is cancelled
+  const removed = []; // saved photos taken out, deleted once the form is saved
+  let busy = 0;
+
+  const rater = (p) => `<div class="rater" style="--seat:${esc(p.colour)}">
+      <div class="rater-top">
+        <span class="seat-avatar small" aria-hidden="true">${esc(p.emoji)}</span>
+        <span class="rater-name">${esc(p.name)}</span>
+        <span class="star-row" role="group" aria-label="${esc(p.name)}'s stars">${[1, 2, 3, 4, 5]
+          .map((n) => `<button type="button" class="star" data-act="star" data-player="${esc(p.id)}" data-value="${n}" aria-label="${plural(n, 'star')}">★</button>`)
+          .join('')}</span>
+      </div>
+      <input class="best-bit" type="text" name="note-${esc(p.id)}" maxlength="80" value="${esc(existing?.notes?.[p.id])}" placeholder="Best bit…" aria-label="${esc(p.name)}'s best bit">
+    </div>`;
+
+  const m = openModal(
+    `<form class="card form memory-form" novalidate>
+      <p class="eyebrow">📸 ${existing ? 'Edit memory' : 'New memory'}</p>
+      <h2>${entryTitle(entry, { reveal: Boolean(existing) })}</h2>
+      <p class="muted">${formatDate(entry.at)}${spinner ? ` · ${esc(spinner.name)} spun` : ''}</p>
+      <div class="field"><span class="field-label">Photos</span><div class="photo-strip"></div></div>
+      <div class="field"><span class="field-label">Stars from everyone</span><div class="raters">${state.players.map(rater).join('')}</div></div>
+      <p class="form-error" hidden></p>
+      <div class="card-actions">
+        <button class="btn btn-go" type="submit">Save memory</button>
+        <button class="btn btn-quiet" type="button" data-act="cancel">Cancel</button>
+      </div>
+      ${existing ? '' : `<button class="link-btn" type="button" data-act="skip">We didn't end up doing it</button>`}
+    </form>`,
+    { dismissible: false },
+  );
+  const form = $('form', m.el);
+  const strip = $('.photo-strip', m.el);
+
+  const drawStars = () =>
+    $$('.star', form).forEach((star) => {
+      const on = Number(star.dataset.value) <= (draft.ratings[star.dataset.player] ?? 0);
+      star.classList.toggle('is-on', on);
+      star.setAttribute('aria-pressed', String(on));
+    });
+  const drawStrip = () => {
+    const thumbs = draft.photos
+      .map(
+        (id) => `<div class="photo-thumb">
+          <img data-photo="${esc(id)}" alt="">
+          <button type="button" class="photo-remove" data-act="remove-photo" data-photo="${esc(id)}" aria-label="Remove photo">✕</button>
+        </div>`,
+      )
+      .join('');
+    const adding = busy ? '<div class="photo-thumb is-busy" aria-live="polite">Adding…</div>' : '';
+    const add =
+      draft.photos.length + busy < MAX_PHOTOS
+        ? `<label class="photo-add"><input type="file" accept="image/*" multiple data-change="photos" aria-label="Add photos"><span aria-hidden="true">＋</span>Add photo</label>`
+        : '';
+    strip.innerHTML = thumbs + adding + add;
+    hydratePhotos(strip);
+  };
+  drawStars();
+  drawStrip();
+
+  m.on('star', (btn) => {
+    const { player } = btn.dataset;
+    const value = Number(btn.dataset.value);
+    if (draft.ratings[player] === value) delete draft.ratings[player];
+    else draft.ratings[player] = value;
+    sound.unlockAudio();
+    sound.pop();
+    drawStars();
+  });
+  m.onChange('photos', async (input) => {
+    const files = [...input.files].slice(0, MAX_PHOTOS - draft.photos.length - busy);
+    if (!files.length) return;
+    busy += files.length;
+    drawStrip();
+    for (const file of files) {
+      const id = uid('photo');
+      try {
+        await addPhoto(file, id);
+        draft.photos.push(id);
+        added.push(id);
+      } catch (err) {
+        toast(err.message);
+      }
+      busy--;
+      drawStrip();
+    }
+  });
+  m.on('remove-photo', (btn) => {
+    const id = btn.dataset.photo;
+    draft.photos = draft.photos.filter((x) => x !== id);
+    if (added.includes(id)) deletePhotos([id]);
+    else removed.push(id);
+    drawStrip();
+  });
+  m.on('cancel', () => {
+    deletePhotos(added);
+    m.close();
+  });
+  m.on('skip', (btn) => {
+    if (!confirmTap(btn, "Tap again: we didn't do it")) return;
+    entry.skipped = true;
+    save();
+    deletePhotos(added);
+    m.close();
+    render();
+    onSave?.();
+    toast('Taken off the list');
+  });
+  m.onSubmit((data) => {
+    if (busy) {
+      showError(form, 'Hang on, still adding your photos.');
+      return;
+    }
+    const notes = {};
+    for (const p of state.players) {
+      const note = String(data.get(`note-${p.id}`) ?? '').trim();
+      if (note) notes[p.id] = note;
+    }
+    // Keep notes from players who have since been removed.
+    for (const [id, note] of Object.entries(existing?.notes ?? {})) if (!playerById(id)) notes[id] = note;
+    if (!Object.keys(draft.ratings).length && !Object.keys(notes).length && !draft.photos.length) {
+      showError(form, 'Add a photo, some stars or a best bit first.');
+      return;
+    }
+    entry.memory = { at: existing?.at ?? Date.now(), ratings: draft.ratings, notes, photos: draft.photos };
+    save();
+    deletePhotos(removed);
+    m.close();
+    render();
+    onSave?.();
+    sound.fanfare(false);
+    confetti({ count: 80 });
+    toast(existing ? 'Memory updated' : 'Saved to the scrapbook 📖');
+  });
+}
+
+function showPhoto(id) {
+  const m = openModal(
+    `<div class="photo-viewer" data-act="close">
+      <img data-photo="${esc(id)}" data-size="full" alt="">
+      <button class="icon-btn" type="button" aria-label="Close">✕</button>
+    </div>`,
+    { className: 'modal-photo' },
+  );
   m.on('close', () => m.close());
+  hydratePhotos(m.el);
+}
+
+// Fills in <img data-photo> elements from the photo store.
+function hydratePhotos(root) {
+  $$('img[data-photo]', root).forEach(async (img) => {
+    const url = await photoUrl(img.dataset.photo, img.dataset.size || 'thumb');
+    if (url) img.src = url;
+    else img.classList.add('is-missing');
+  });
 }
 
 // ---------- First run ----------
@@ -712,6 +1028,8 @@ function showGrownUps() {
     const list = state.activities.filter((a) => a.category === listCategory);
     const on = list.filter((a) => a.active);
     const off = list.filter((a) => !a.active);
+    const stats = activityStats(state.history);
+    const activityRow = (a) => activityRowHtml(a, stats.get(a.id));
     return `
       <div class="seg" role="group" aria-label="Which list">${CATEGORIES.map(
         (c) => `<button type="button" class="seg-btn${c.id === listCategory ? ' is-active' : ''}" data-act="list-cat" data-cat="${c.id}">${c.emoji} ${c.short}</button>`,
@@ -724,9 +1042,10 @@ function showGrownUps() {
       ${off.length ? `<ul class="act-list">${off.map(activityRow).join('')}</ul>` : ''}`;
   }
 
-  function activityRow(a) {
+  function activityRowHtml(a, done) {
     const owner = playerById(a.addedBy);
     const tags = [
+      done ? `${done.average !== null ? `★ ${formatRating(done.average)}, ` : ''}done ${timesText(done.times)}` : null,
       COSTS[a.cost ?? 0],
       a.outdoor ? '☀️ Good weather' : null,
       a.home ? '🏠 Home' : null,
@@ -830,7 +1149,7 @@ function showGrownUps() {
       </section>
       <section class="settings-group">
         <h3 class="list-head">Backup</h3>
-        <p class="muted small">Everything is saved on this device only. Copy a backup now and then and keep it somewhere safe, like a note or an email to yourself. Paste it back here to restore it or move to a new phone.</p>
+        <p class="muted small">Everything is saved on this device only. Copy a backup now and then and keep it somewhere safe, like a note or an email to yourself. Paste it back here to restore it or move to a new phone. The backup includes stars and best bits, but not photos: those stay on this phone.</p>
         <div class="button-row"><button class="btn btn-go" type="button" data-act="copy-backup">Copy backup</button></div>
         <textarea id="backup-text" class="backup-text" rows="3" placeholder="Paste a backup here to restore it" aria-label="Backup text"></textarea>
         <div class="button-row"><button class="btn btn-quiet" type="button" data-act="restore">Restore from backup</button></div>
@@ -839,7 +1158,7 @@ function showGrownUps() {
       <section class="settings-group">
         <h3 class="list-head">Start again</h3>
         <div class="button-row">
-          <button class="btn btn-quiet" type="button" data-act="clear-history">Clear the history</button>
+          <button class="btn btn-quiet" type="button" data-act="clear-history">Clear the scrapbook</button>
           <button class="btn btn-veto" type="button" data-act="reset-all">Reset everything</button>
         </div>
       </section>`;
@@ -978,13 +1297,15 @@ function showGrownUps() {
     toast('Backup restored');
   });
   m.on('clear-history', (btn) => {
-    if (!confirmTap(btn, 'Tap again to clear')) return;
+    if (!confirmTap(btn, 'Tap again: photos and stars go too')) return;
     state.history = [];
+    deleteAllPhotos();
     refresh();
-    toast('History cleared');
+    toast('Scrapbook cleared');
   });
   m.on('reset-all', (btn) => {
     if (!confirmTap(btn, 'Tap again: this wipes everything')) return;
+    deleteAllPhotos();
     state = defaultState();
     ui.combo = null;
     save();
@@ -1158,7 +1479,7 @@ function toast(text) {
   void el.offsetWidth;
   el.classList.add('is-visible');
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => el.classList.remove('is-visible'), 2800);
+  toast.timer = setTimeout(() => el.classList.remove('is-visible'), Math.max(2800, text.length * 55));
 }
 
 function registerServiceWorker() {
@@ -1181,7 +1502,8 @@ $('#chip-budget').addEventListener('click', () => {
 });
 $('#chip-home').addEventListener('click', () => setFilter({ homeOnly: !state.filters.homeOnly }));
 $('#btn-spin').addEventListener('click', () => spin({ dir: 1, strength: 0.85 + secureRandom() * 0.45 }));
-$('#btn-history').addEventListener('click', showHistory);
+$('#btn-scrapbook').addEventListener('click', showScrapbook);
+$('#memory-prompt').addEventListener('click', (e) => showMemoryForm(e.currentTarget.dataset.id));
 $('#btn-idea').addEventListener('click', showIdeaForm);
 $('#btn-parent').addEventListener('click', () => requirePin(showGrownUps));
 $('#btn-sound').addEventListener('click', () => {

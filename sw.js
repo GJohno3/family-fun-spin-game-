@@ -1,7 +1,7 @@
 // Offline support. Tries the network first so updates show up straight away,
 // and falls back to the saved copy when there's no signal.
 
-const CACHE = 'family-fun-wheel-v1';
+const CACHE = 'family-fun-wheel-v2';
 const APP_FILES = [
   './',
   'index.html',
@@ -11,6 +11,8 @@ const APP_FILES = [
   'js/confetti.js',
   'js/data.js',
   'js/logic.js',
+  'js/memories.js',
+  'js/photos.js',
   'js/sound.js',
   'js/state.js',
   'js/wheel.js',
