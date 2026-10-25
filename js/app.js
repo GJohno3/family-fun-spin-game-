@@ -1194,7 +1194,8 @@ $('#btn-sound').addEventListener('click', () => {
     sound.pop();
   }
 });
-document.addEventListener('pointerdown', () => sound.unlockAudio(), { passive: true });
+// iPhones only allow sound to start when a finger lifts, not when it lands.
+['pointerup', 'touchend', 'click', 'keydown'].forEach((type) => document.addEventListener(type, () => sound.unlockAudio(), { passive: true }));
 
 sound.setSoundEnabled(state.settings.sound);
 render();

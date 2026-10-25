@@ -1,5 +1,5 @@
 // Sound effects, synthesised with Web Audio so there are no files to download.
-// Browsers only allow sound after a tap, so unlockAudio() runs on the first one.
+// Browsers only allow sound after a tap, so unlockAudio() runs on each one.
 
 let ctx = null;
 let enabled = true;
@@ -9,19 +9,33 @@ let lastTick = 0;
 export function setSoundEnabled(on) {
   enabled = on;
   if (!on) stopRoll();
+  setAudioSession();
+}
+
+// On iPhone, Web Audio is muted by silent mode unless the page asks to be
+// treated like a media player. The app has its own sound button for quiet
+// times, so play through silent mode while that button is on.
+function setAudioSession() {
+  try {
+    if (navigator.audioSession) navigator.audioSession.type = enabled ? 'playback' : 'ambient';
+  } catch {
+    // Not supported: sound follows the phone's silent switch.
+  }
 }
 
 export function unlockAudio() {
   if (!ctx) {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
+    setAudioSession();
     try {
       ctx = new AudioCtx();
     } catch {
       return;
     }
   }
-  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  // iPhones also park audio as "interrupted" after a call or switching apps.
+  if (ctx.state !== 'running') ctx.resume().catch(() => {});
 }
 
 function ready() {
@@ -96,6 +110,8 @@ export function startRoll() {
 }
 
 export function updateRoll(speed) {
+  // Audio can take a moment to start after the first tap, so catch up here.
+  if (!roll) startRoll();
   if (!roll) return;
   const t = ctx.currentTime;
   roll.amp.gain.setTargetAtTime(0.015 + 0.09 * speed, t, 0.05);
