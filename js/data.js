@@ -6,6 +6,10 @@
 // outdoor: needs good weather (hidden when the wheel is set to rainy)
 // home: can be done at home
 // kind: 'normal', 'jackpot' (rare big treat) or 'secret' (Mystery Envelope)
+// since: the DATA_VERSION an entry was added in. Bump DATA_VERSION when adding
+// entries so phones that already have a saved list pick them up.
+
+export const DATA_VERSION = 2;
 
 const base = { cost: 1, outdoor: false, home: false, kind: 'normal', active: true, suggested: false, notes: '' };
 const activity = (fields) => ({ ...base, ...fields });
@@ -31,6 +35,7 @@ export const STARTER_ACTIVITIES = [
   activity({ id: 'street-soccer', category: 'dayout', name: "Street Soccer and McDonald's", label: 'Street Soccer', emoji: '🥅', cost: 2 }),
   activity({ id: 'go-ape', category: 'dayout', name: "Go Ape and McDonald's", label: 'Go Ape', emoji: '🦍', cost: 3, outdoor: true }),
   activity({ id: 'beach', category: 'dayout', name: 'Beach and bodyboarding', label: 'Beach', emoji: '🏄', cost: 0, outdoor: true }),
+  activity({ id: 'flip-out', category: 'dayout', name: 'Flip Out', label: 'Flip Out', emoji: '🦘', cost: 2, since: 2 }),
 
   // Jackpots: switched on so the Jackpot pocket shows up from the start
   suggestion({ id: 's-jackpot-evening', category: 'afterschool', kind: 'jackpot', active: true, name: "Dinner out, then the cinema with pick 'n' mix", label: 'Dinner + Film', emoji: '🍽️', cost: 3 }),

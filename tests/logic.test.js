@@ -141,5 +141,5 @@ test('the starter list is valid and every id is unique', () => {
   }
   const onWheel = (category) => STARTER_ACTIVITIES.filter((a) => a.active && a.category === category && a.kind === 'normal').length;
   assert.equal(onWheel('afterschool'), 10);
-  assert.equal(onWheel('dayout'), 6);
+  assert.equal(onWheel('dayout'), 7);
 });

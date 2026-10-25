@@ -1,6 +1,6 @@
 // Saving and loading. Everything lives in this device's browser storage.
 
-import { STARTER_ACTIVITIES } from './data.js';
+import { DATA_VERSION, STARTER_ACTIVITIES } from './data.js';
 
 const STORAGE_KEY = 'family-fun-wheel/v1';
 
@@ -14,6 +14,7 @@ export const IDEA_EMOJIS = ['💡', '🎳', '⚽', '🏊', '🚲', '🛹', '🎬
 export function defaultState() {
   return {
     version: 1,
+    dataVersion: DATA_VERSION,
     setupDone: false,
     players: [
       newPlayer({ id: 'p1', name: 'Player 1', emoji: AVATARS[0], colour: PLAYER_COLOURS[0] }),
@@ -76,6 +77,13 @@ function normalise(data) {
   };
   delete state.app;
   if (!state.players?.length) state.players = fresh.players;
+
+  // Add starter activities that came out after this list was saved.
+  const seen = data.dataVersion ?? 1;
+  for (const a of STARTER_ACTIVITIES) {
+    if ((a.since ?? 1) > seen && !state.activities.some((x) => x.id === a.id)) state.activities.push({ ...a });
+  }
+  state.dataVersion = DATA_VERSION;
   state.turn = Math.min(Math.max(0, state.turn | 0), state.players.length - 1);
   return state;
 }
