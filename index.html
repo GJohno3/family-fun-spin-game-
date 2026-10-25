@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Family Fun Wheel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Spin the roulette wheel to pick the family's next activity.">
+<meta name="theme-color" content="#072a1b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fun Wheel">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<main class="app">
+  <header class="topbar">
+    <h1 class="brand">
+      <span class="brand-name">Family Fun</span>
+      <span class="brand-tag">Spin it. Do it.</span>
+    </h1>
+    <nav class="top-actions" aria-label="Menu">
+      <button id="btn-history" class="icon-btn" type="button" aria-label="What we've done">📜</button>
+      <button id="btn-idea" class="icon-btn" type="button" aria-label="Add an idea">💡</button>
+      <button id="btn-sound" class="icon-btn" type="button" aria-label="Sound">🔊</button>
+      <button id="btn-parent" class="icon-btn" type="button" aria-label="Grown-ups">🔒<span id="idea-count" class="count" hidden></span></button>
+    </nav>
+  </header>
+
+  <section class="table" aria-label="What kind of fun?">
+    <div class="bet-boxes" role="tablist">
+      <button class="bet-box" type="button" role="tab" data-category="afterschool"><span class="bet-emoji" aria-hidden="true">🏫</span>After school<br>&amp; evening</button>
+      <button class="bet-box" type="button" role="tab" data-category="dayout"><span class="bet-emoji" aria-hidden="true">🌄</span>Day out</button>
+    </div>
+    <div class="chips">
+      <button id="chip-weather" class="chip" type="button" aria-pressed="false">☀️ Dry</button>
+      <button id="chip-budget" class="chip" type="button">💷 Any budget</button>
+      <button id="chip-home" class="chip" type="button" aria-pressed="false">🏠 Stay home</button>
+    </div>
+  </section>
+
+  <section class="turn" aria-live="polite">
+    <p id="turn-banner" class="turn-banner"></p>
+    <p id="combo-strip" class="combo-strip" hidden></p>
+    <ul id="seats" class="seats" aria-label="Players"></ul>
+  </section>
+
+  <section class="wheel-zone">
+    <div class="wheel-wrap">
+      <canvas id="wheel" role="img" aria-label="Roulette wheel of activities. Flick it to spin."></canvas>
+    </div>
+    <p id="wheel-hint" class="wheel-hint">Flick the wheel with your finger to spin it</p>
+    <button id="btn-spin" class="spin-btn" type="button">Spin</button>
+    <p id="wheel-count" class="wheel-count"></p>
+  </section>
+</main>
+
+<div id="toast" class="toast" role="status" popover="manual"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
