@@ -49,13 +49,13 @@ The starter list has the family's own activities switched on, plus a set of sugg
 
 ## Putting it on your phone
 
-The app needs to be hosted somewhere so the phone can open it. Any static hosting works. Two free options:
+The app is hosted for free with GitHub Pages:
 
-**GitHub Pages.** This needs the repository to be public on a free GitHub plan (private repos need a paid plan). In the repo, go to **Settings → Pages**, set **Source** to *Deploy from a branch*, pick `main` and `/ (root)`, and save. After a minute the app is at `https://<username>.github.io/family-fun/`.
+**<https://gjohno3.github.io/family-fun-spin-game-/>**
 
-**Netlify or Cloudflare Pages.** Both can publish a private GitHub repo for free. Connect the repo, leave the build command empty and set the publish directory to `/`.
+To switch this on (once): in the repo, go to **Settings → Pages**, set **Source** to *Deploy from a branch*, pick `main` and `/ (root)`, and save. A minute later the app is live at the address above. Every change pushed to `main` goes live the same way.
 
-Then add it to the home screen:
+Open that address on the phone, then add it to the home screen:
 
 - **iPhone (Safari):** tap Share, then **Add to Home Screen**.
 - **Android (Chrome):** tap ⋮, then **Add to Home screen** or **Install app**.
