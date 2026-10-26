@@ -818,7 +818,7 @@ function showSetup() {
       <p class="muted">Add everyone who takes a turn. You spin in turns, and everyone gets a veto each month.</p>
       <div class="setup-players"></div>
       <button class="btn btn-quiet block" type="button" data-act="add">+ Add a player</button>
-      <p class="muted small">Grown-ups: tap 🔒 at the top to set a PIN, choose activities and approve the kids' ideas.</p>
+      <p class="muted small">Grown-ups: tap 🔒 at the top to set a PIN, choose activities and approve the kids' ideas. <a href="guide.html" target="_blank" rel="noopener">How it works</a></p>
       <div class="card-actions single"><button class="btn btn-go" type="submit">Let's play!</button></div>
     </form>`,
     { dismissible: false },
@@ -1146,6 +1146,11 @@ function showGrownUps() {
         <div class="button-row"><button class="btn btn-quiet" type="button" data-act="change-pin">Change the PIN</button></div>
       </section>
       <section class="settings-group">
+        <h3 class="list-head">Share with friends</h3>
+        <p class="muted small">Send other families a link with instructions for setting up their own wheel. Their activities and photos stay on their phone, and yours stay on yours.</p>
+        <div class="button-row"><button class="btn btn-go" type="button" data-act="share-app">📤 Share the app</button></div>
+      </section>
+      <section class="settings-group">
         <h3 class="list-head">Backup</h3>
         <p class="muted small">Everything is saved on this device only. Copy a backup now and then and keep it somewhere safe, like a note or an email to yourself. Paste it back here to restore it or move to a new phone. The backup includes stars and best bits, but not photos: those stay on this phone.</p>
         <div class="button-row"><button class="btn btn-go" type="button" data-act="copy-backup">Copy backup</button></div>
@@ -1257,6 +1262,7 @@ function showGrownUps() {
     render();
   });
   m.on('change-pin', () => showSetPin());
+  m.on('share-app', () => shareApp());
   m.on('copy-backup', () => {
     const text = exportState(state);
     const fallback = () => {
@@ -1478,6 +1484,30 @@ function toast(text) {
   el.classList.add('is-visible');
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => el.classList.remove('is-visible'), Math.max(2800, text.length * 55));
+}
+
+// Opens the phone's share sheet with the "how to get it" page, or copies the link.
+function shareApp() {
+  const url = new URL('guide.html', location.href).href;
+  const text = "We use this to pick family activities: the kids spin a roulette wheel and whatever it lands on is what we do. It's free, with no app store or sign-up. Here's how to set it up for your family:";
+  const copy = () => {
+    const copied = navigator.clipboard?.writeText(`${text} ${url}`);
+    if (!copied) {
+      toast(`Send this link: ${url}`);
+      return;
+    }
+    copied.then(
+      () => toast('Link copied. Paste it into a message.'),
+      () => toast(`Send this link: ${url}`),
+    );
+  };
+  if (navigator.share) {
+    navigator.share({ title: 'Family Fun Wheel', text, url }).catch((err) => {
+      if (err?.name !== 'AbortError') copy();
+    });
+  } else {
+    copy();
+  }
 }
 
 function registerServiceWorker() {

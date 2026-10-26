@@ -1,0 +1,270 @@
+/* The "how to get it" page. Uses the app's colours and fonts from styles.css:
+   the green table as the background, with each step on an ivory card. */
+
+.guide {
+  max-width: 720px;
+  margin: 0 auto;
+  padding-block: 24px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 18px;
+}
+
+.guide-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  gap: 24px;
+  padding-bottom: 8px;
+  text-align: center;
+}
+
+.hero-text {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.hero-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(32px, 10vw, 48px);
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 0 3px 0 var(--gold-deep), 0 6px 14px rgb(0 0 0 / 0.35);
+  text-wrap: balance;
+}
+
+.hero-tag {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--chalk-dim);
+}
+
+.hero-intro {
+  max-width: 34em;
+  margin: 6px 0 0;
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+.hero-facts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 4px 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-facts li {
+  position: relative;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--black);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hero-facts li::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  border: 2px dashed rgb(255 255 255 / 0.35);
+}
+
+.hero-button {
+  position: relative;
+  display: inline-block;
+  padding: 14px 34px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 30%, #e3263f, var(--red) 55%, var(--red-deep));
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  box-shadow: 0 0 0 4px var(--gold), 0 5px 0 4px var(--gold-deep), 0 12px 22px rgb(0 0 0 / 0.4);
+}
+
+.hero-button:active {
+  transform: translateY(3px);
+}
+
+.hero-phone {
+  width: min(280px, 72vw);
+  height: auto;
+  max-width: 100%;
+  border: 8px solid var(--black);
+  border-radius: 32px;
+  box-shadow: 0 0 0 2px var(--gold-deep), 0 22px 40px rgb(0 0 0 / 0.45);
+}
+
+@media (min-width: 680px) {
+  .guide-hero {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    text-align: left;
+  }
+
+  .hero-text {
+    justify-items: start;
+  }
+
+  .hero-facts {
+    justify-content: flex-start;
+  }
+}
+
+/* Step cards */
+.guide-card {
+  padding: 22px 20px;
+  border-radius: 18px;
+  background: var(--ivory);
+  color: var(--ink);
+  box-shadow: var(--shadow), inset 0 0 0 3px var(--ivory), inset 0 0 0 5px var(--gold);
+}
+
+.guide-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.step {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--red);
+  color: var(--white);
+  font-size: 18px;
+  box-shadow: inset 0 0 0 3px var(--red), inset 0 0 0 5px rgb(255 255 255 / 0.55);
+}
+
+.guide-card p {
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.guide-card a {
+  color: var(--red-deep);
+  font-weight: 600;
+}
+
+.platforms {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 560px) {
+  .platforms {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.platform {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--white);
+}
+
+.platform h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+
+.platform ol,
+.steps {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 1.4em;
+  line-height: 1.45;
+}
+
+.steps {
+  gap: 12px;
+}
+
+.steps.plain {
+  padding-left: 0;
+  list-style: none;
+}
+
+.steps ul {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding-left: 1.2em;
+}
+
+.tip {
+  margin: 16px 0 0 !important;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--white);
+  border-left: 4px solid var(--gold);
+}
+
+.pockets,
+.faq {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+}
+
+.pockets {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.pockets div,
+.faq div {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--white);
+}
+
+.pockets dt,
+.faq dt {
+  font-weight: 700;
+}
+
+.pockets dd,
+.faq dd {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.faq {
+  margin-top: 0;
+}
+
+.faq code {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--ivory-shade);
+  color: var(--ink);
+  font-size: 0.95em;
+}
+
+.guide-footer {
+  display: grid;
+  justify-items: center;
+  padding-top: 10px;
+}

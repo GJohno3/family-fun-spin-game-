@@ -530,6 +530,11 @@ dialog.modal::backdrop {
   outline-color: var(--blue);
 }
 
+.card a {
+  color: var(--red-deep);
+  font-weight: 600;
+}
+
 .card h2,
 .sheet h2 {
   margin: 0 0 8px;

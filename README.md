@@ -4,6 +4,8 @@ A roulette wheel that picks what the family does next. Take turns flicking the w
 
 **▶️ Play it: <https://gjohno3.github.io/family-fun-spin-game-/>**
 
+**📖 Setting it up for your own family? Start here: <https://gjohno3.github.io/family-fun-spin-game-/guide.html>**
+
 It's a web app: no app store and no account. It runs in the phone's browser and can be added to the home screen like a normal app. Everything is saved on that phone.
 
 ## How it works
