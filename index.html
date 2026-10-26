@@ -37,13 +37,13 @@
 
   <section class="table" aria-label="What kind of fun?">
     <div class="bet-boxes" role="tablist">
-      <button class="bet-box" type="button" role="tab" data-category="afterschool"><span class="bet-emoji" aria-hidden="true">🏫</span>After school<br>&amp; evening</button>
-      <button class="bet-box" type="button" role="tab" data-category="dayout"><span class="bet-emoji" aria-hidden="true">🌄</span>Day out</button>
+      <button class="bet-box" type="button" role="tab" data-category="afterschool"><span class="bet-emoji" aria-hidden="true">🏫</span><span>After school<br>&amp; evening</span></button>
+      <button class="bet-box" type="button" role="tab" data-category="dayout"><span class="bet-emoji" aria-hidden="true">🌄</span><span>Day out</span></button>
     </div>
     <div class="chips">
       <button id="chip-weather" class="chip" type="button" aria-pressed="false">☀️ Dry</button>
-      <button id="chip-budget" class="chip" type="button">💷 Any budget</button>
-      <button id="chip-home" class="chip" type="button" aria-pressed="false">🏠 Stay home</button>
+      <button id="chip-budget" class="chip" type="button" aria-label="Budget">💷 Any £</button>
+      <button id="chip-home" class="chip" type="button" aria-pressed="false" aria-label="Stay at home">🏠 Home</button>
     </div>
   </section>
 
@@ -56,10 +56,9 @@
   <section class="wheel-zone">
     <div class="wheel-wrap">
       <canvas id="wheel" role="img" aria-label="Roulette wheel of activities. Flick it to spin."></canvas>
+      <p id="wheel-empty" class="wheel-empty" hidden>Not enough activities match. Try changing the filters.</p>
     </div>
-    <p id="wheel-hint" class="wheel-hint">Flick the wheel with your finger to spin it</p>
-    <button id="btn-spin" class="spin-btn" type="button">Spin</button>
-    <p id="wheel-count" class="wheel-count"></p>
+    <button id="btn-spin" class="spin-btn" type="button"><span class="spin-word">Spin</span><span class="spin-hint">or flick the wheel</span></button>
   </section>
 </main>
 

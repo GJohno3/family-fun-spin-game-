@@ -101,9 +101,10 @@ function renderMemoryPrompt() {
   prompt.hidden = !pending.length;
   if (!pending.length) return;
   prompt.dataset.id = pending[0].id;
-  const more = pending.length > 1 ? `<span class="memory-prompt-more">+${pending.length - 1} more</span>` : '';
+  const more = pending.length > 1 ? `<span class="memory-prompt-more">+${pending.length - 1}</span>` : '';
   prompt.innerHTML = `<span class="memory-prompt-icon" aria-hidden="true">📸</span>
-    <span class="memory-prompt-text">How was ${entryTitle(pending[0])}? <strong>Add photos and stars</strong></span>${more}`;
+    <span class="memory-prompt-text">How was ${entryTitle(pending[0])}?</span>
+    <span class="memory-prompt-go">Add stars ›</span>${more}`;
 }
 
 function renderTable() {
@@ -120,7 +121,8 @@ function renderTable() {
   weather.classList.toggle('is-on', rainy);
   const budget = BUDGETS.find((b) => b.id === f.budget) ?? BUDGETS[0];
   const budgetChip = $('#chip-budget');
-  budgetChip.textContent = `💷 ${budget.label}`;
+  budgetChip.textContent = `💷 ${budget.short}`;
+  budgetChip.setAttribute('aria-label', `Budget: ${budget.label}`);
   budgetChip.classList.toggle('is-on', budget.id !== 'any');
   const home = $('#chip-home');
   home.hidden = f.category !== 'afterschool';
@@ -179,13 +181,9 @@ function refreshWheel() {
 
   const ready = ui.pockets.length >= 2;
   $('#btn-spin').disabled = ui.spinning || !ready;
-  $('#wheel-hint').textContent = ready
-    ? 'Flick the wheel with your finger to spin it'
-    : 'Not enough activities match. Try changing the filters above.';
+  $('#wheel-empty').hidden = ready;
   const count = eligibleActivities(state.activities, state.filters).length;
-  let text = `${plural(count, 'activity', 'activities')} on the wheel`;
-  if (state.filters.weather === 'rainy') text += ' · good-weather ones hidden';
-  $('#wheel-count').textContent = text;
+  $('#wheel').setAttribute('aria-label', `Roulette wheel with ${plural(count, 'activity', 'activities')}. Flick it to spin.`);
 }
 
 function setFilter(change) {

@@ -11,10 +11,10 @@ export const CATEGORIES = [
 export const COSTS = ['Free', '£', '££', '£££'];
 
 export const BUDGETS = [
-  { id: 'any', label: 'Any budget', max: 3 },
-  { id: 'mid', label: '££ max', max: 2 },
-  { id: 'cheap', label: '£ max', max: 1 },
-  { id: 'free', label: 'Free only', max: 0 },
+  { id: 'any', label: 'Any budget', short: 'Any £', max: 3 },
+  { id: 'mid', label: '££ max', short: '££ max', max: 2 },
+  { id: 'cheap', label: '£ max', short: '£ max', max: 1 },
+  { id: 'free', label: 'Free only', short: 'Free', max: 0 },
 ];
 
 // Special pockets. Weight sets how wide the pocket is, and so how likely it is.
